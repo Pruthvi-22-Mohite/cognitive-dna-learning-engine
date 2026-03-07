@@ -2,14 +2,16 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ICognitiveProfile extends Document {
   userId: mongoose.Types.ObjectId;
-  logicalThinking: number;
-  visualLearning: number;
-  memory: number;
-  readingSkill: number;
-  problemSolving: number;
-  learningStyle?: string;
+  visualMemory: number;
+  logicalReasoning: number;
+  attentionFocus: number;
+  processingSpeed: number;
+  readingComprehension: number;
+  learningStyle: string;
+  strengths: string[];
+  weaknesses: string[];
   recommendations: string[];
-  lastUpdated: Date;
+  createdAt: Date;
 }
 
 const CognitiveProfileSchema: Schema = new Schema({
@@ -19,31 +21,31 @@ const CognitiveProfileSchema: Schema = new Schema({
     required: true,
     unique: true,
   },
-  logicalThinking: {
+  visualMemory: {
     type: Number,
     required: true,
     min: 0,
     max: 100,
   },
-  visualLearning: {
+  logicalReasoning: {
     type: Number,
     required: true,
     min: 0,
     max: 100,
   },
-  memory: {
+  attentionFocus: {
     type: Number,
     required: true,
     min: 0,
     max: 100,
   },
-  readingSkill: {
+  processingSpeed: {
     type: Number,
     required: true,
     min: 0,
     max: 100,
   },
-  problemSolving: {
+  readingComprehension: {
     type: Number,
     required: true,
     min: 0,
@@ -51,13 +53,22 @@ const CognitiveProfileSchema: Schema = new Schema({
   },
   learningStyle: {
     type: String,
-    default: 'Not analyzed',
+    enum: ['visual', 'logical', 'verbal', 'kinesthetic'],
+    required: true,
+  },
+  strengths: {
+    type: [String],
+    default: [],
+  },
+  weaknesses: {
+    type: [String],
+    default: [],
   },
   recommendations: {
     type: [String],
     default: [],
   },
-  lastUpdated: {
+  createdAt: {
     type: Date,
     default: Date.now,
   },

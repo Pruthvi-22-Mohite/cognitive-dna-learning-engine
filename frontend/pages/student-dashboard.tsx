@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { quizAPI } from '@/services/api';
+import { quizAPI, dashboardAPI } from '@/services/api';
 
 interface Activity {
   id: string;
@@ -18,6 +18,7 @@ export default function StudentDashboard() {
   const [user, setUser] = useState<any>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState<any>(null);
 
   useEffect(() => {
     // Check authentication
@@ -31,8 +32,9 @@ export default function StudentDashboard() {
 
     setUser(JSON.parse(userData));
 
-    // Fetch activities
+    // Fetch activities and dashboard data
     loadActivities();
+    loadDashboardData();
   }, []);
 
   const loadActivities = async () => {
@@ -43,6 +45,19 @@ export default function StudentDashboard() {
       console.error('Error loading activities:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadDashboardData = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (!user.id) return;
+
+      const response = await dashboardAPI.getData(user.id);
+      setDashboardData(response.data.data);
+      console.log('📊 Dashboard data loaded:', response.data.data);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
     }
   };
 
@@ -130,6 +145,99 @@ export default function StudentDashboard() {
             ))}
           </div>
 
+          {/* Brain Badges Section */}
+          {dashboardData && dashboardData.brainBadges && dashboardData.brainBadges.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="mt-16 card"
+            >
+              <h3 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+                🏆 Your Brain Badges
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {dashboardData.brainBadges.map((badge: any, index: number) => (
+                  <motion.div
+                    key={index}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.5 + index * 0.1 }}
+                    className="p-4 bg-gradient-to-br from-yellow-100 to-purple-100 rounded-xl text-center border-2 border-yellow-300"
+                  >
+                    <div className="text-5xl mb-2">{badge.icon}</div>
+                    <p className="text-sm font-semibold text-gray-700 capitalize">
+                      {badge.type}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">{badge.level}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Cognitive Profile Section */}
+          {dashboardData && dashboardData.hasBrainMap && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="mt-16 card"
+            >
+              <h3 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+                🧠 Your Cognitive DNA
+              </h3>
+              
+              {/* Learning Style Badge */}
+              <div className="mb-6 flex justify-center">
+                <div className="px-6 py-3 bg-indigo-100 rounded-full border-2 border-indigo-300">
+                  <span className="text-lg font-bold text-indigo-700">
+                    ✨ Learning Style: {dashboardData.learningStyle?.toUpperCase() || 'N/A'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Strengths & Weaknesses */}
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                  <h4 className="font-bold text-green-800 mb-3">💪 Strengths</h4>
+                  <ul className="space-y-2">
+                    {dashboardData.strengths?.map((strength: string, idx: number) => (
+                      <li key={idx} className="text-green-700 flex items-start">
+                        <span className="mr-2">✓</span>
+                        {strength}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
+                  <h4 className="font-bold text-orange-800 mb-3">🎯 Areas to Improve</h4>
+                  <ul className="space-y-2">
+                    {dashboardData.weaknesses?.map((weakness: string, idx: number) => (
+                      <li key={idx} className="text-orange-700 flex items-start">
+                        <span className="mr-2">→</span>
+                        {weakness}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Recommendations */}
+              <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
+                <h4 className="font-bold text-blue-800 mb-4">💡 Personalized Recommendations</h4>
+                <ul className="space-y-2">
+                  {dashboardData.recommendations?.map((rec: string, idx: number) => (
+                    <li key={idx} className="text-blue-700 flex items-start">
+                      <span className="mr-2">💡</span>
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+          )}
+
           {/* Progress Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -144,17 +252,23 @@ export default function StudentDashboard() {
               <div className="text-center p-6 bg-blue-50 rounded-xl">
                 <div className="text-4xl mb-2">🎯</div>
                 <p className="text-gray-600">Activities Completed</p>
-                <p className="text-3xl font-bold text-blue-600 mt-2">0</p>
+                <p className="text-3xl font-bold text-blue-600 mt-2">
+                  {dashboardData ? dashboardData.activitiesCompleted : 0}
+                </p>
               </div>
               <div className="text-center p-6 bg-green-50 rounded-xl">
                 <div className="text-4xl mb-2">⭐</div>
                 <p className="text-gray-600">Average Score</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">--%</p>
+                <p className="text-3xl font-bold text-green-600 mt-2">
+                  {dashboardData ? `${dashboardData.averageScore}%` : '--%'}
+                </p>
               </div>
               <div className="text-center p-6 bg-purple-50 rounded-xl">
                 <div className="text-4xl mb-2">🏆</div>
                 <p className="text-gray-600">Brain Badges</p>
-                <p className="text-3xl font-bold text-purple-600 mt-2">0</p>
+                <p className="text-3xl font-bold text-purple-600 mt-2">
+                  {dashboardData && dashboardData.brainBadges ? dashboardData.brainBadges.length : 0}
+                </p>
               </div>
             </div>
           </motion.div>

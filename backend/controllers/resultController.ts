@@ -23,33 +23,36 @@ export const getCognitiveProfile = async (req: Request, res: Response): Promise<
 // Update or create cognitive profile (called by AI service)
 export const updateCognitiveProfile = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId, logicalThinking, visualLearning, memory, readingSkill, problemSolving, learningStyle, recommendations } = req.body;
+    const { userId, visualMemory, logicalReasoning, attentionFocus, processingSpeed, readingComprehension, learningStyle, strengths, weaknesses, recommendations } = req.body;
 
     // Check if profile exists
     let profile = await CognitiveProfile.findOne({ userId });
 
     if (profile) {
       // Update existing profile
-      profile.logicalThinking = logicalThinking;
-      profile.visualLearning = visualLearning;
-      profile.memory = memory;
-      profile.readingSkill = readingSkill;
-      profile.problemSolving = problemSolving;
+      profile.visualMemory = visualMemory;
+      profile.logicalReasoning = logicalReasoning;
+      profile.attentionFocus = attentionFocus;
+      profile.processingSpeed = processingSpeed;
+      profile.readingComprehension = readingComprehension;
       profile.learningStyle = learningStyle;
+      profile.strengths = strengths;
+      profile.weaknesses = weaknesses;
       profile.recommendations = recommendations;
-      profile.lastUpdated = new Date();
       
       await profile.save();
     } else {
       // Create new profile
       profile = new CognitiveProfile({
         userId,
-        logicalThinking,
-        visualLearning,
-        memory,
-        readingSkill,
-        problemSolving,
+        visualMemory,
+        logicalReasoning,
+        attentionFocus,
+        processingSpeed,
+        readingComprehension,
         learningStyle,
+        strengths,
+        weaknesses,
         recommendations,
       });
       
@@ -71,7 +74,7 @@ export const getProgress = async (req: Request, res: Response): Promise<void> =>
   try {
     const { userId } = req.params;
 
-    const profiles = await CognitiveProfile.find({ userId }).sort({ lastUpdated: -1 }).limit(10);
+    const profiles = await CognitiveProfile.find({ userId }).sort({ createdAt: -1 }).limit(10);
     
     res.json(profiles);
   } catch (error) {

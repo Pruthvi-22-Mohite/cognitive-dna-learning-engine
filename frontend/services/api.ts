@@ -40,4 +40,20 @@ export const resultsAPI = {
   getProgress: (userId: string) => api.get(`/api/results/progress/${userId}`),
 };
 
+// Cognitive Analysis APIs
+export const cognitiveAPI = {
+  submitResults: (data: any) => api.post('/api/cognitive/submit-results', data),
+  getProfile: (userId: string) => api.get(`/api/cognitive/profile/${userId}`),
+};
+
+// Dashboard APIs
+export const dashboardAPI = {
+  submitTest: (data: any) => api.post('/api/dashboard/submit', data),
+  getData: (studentId: string) => api.get(`/api/dashboard/${studentId}`),
+  getActivity: (studentId: string, limit?: number) => {
+    const url = limit ? `/api/dashboard/activity/${studentId}?limit=${limit}` : `/api/dashboard/activity/${studentId}`;
+    return api.get(url);
+  },
+};
+
 export default api;

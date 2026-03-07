@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import quizRoutes from './routes/quizRoutes';
 import resultRoutes from './routes/resultRoutes';
+import cognitiveRoutes from './routes/cognitiveRoutes';
+import dashboardRoutes from './routes/dashboardRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -34,6 +36,8 @@ mongoose
 app.use('/api/auth', authRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/results', resultRoutes);
+app.use('/api/cognitive', cognitiveRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

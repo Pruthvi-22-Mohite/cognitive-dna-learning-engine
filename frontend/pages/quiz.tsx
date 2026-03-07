@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { quizAPI } from '@/services/api';
+import { quizAPI, dashboardAPI } from '@/services/api';
 import { useAdaptiveQuiz } from '@/hooks/useAdaptiveQuiz';
 
 interface Question {
@@ -540,6 +540,8 @@ export default function Quiz() {
 
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      // Submit to quiz API (existing)
       await quizAPI.submitResult({
         quizType: type,
         score: calculatedScore,
@@ -549,6 +551,18 @@ export default function Quiz() {
         difficultyLevel: finalDifficulty,
         adaptiveScore: adaptiveScoreValue,
       });
+
+      // Also submit to dashboard API for cognitive analysis pipeline
+      await dashboardAPI.submitTest({
+        studentId: user.id,
+        activityType: type,
+        accuracy: calculatedScore,
+        responseTime: timeTaken * 1000, // Convert to milliseconds
+        attempts: 1,
+        difficulty: finalDifficulty,
+      });
+      
+      console.log('✅ Test submitted to both APIs');
     } catch (error) {
       console.error('Error submitting result:', error);
     }

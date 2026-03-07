@@ -4,7 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
-import { resultsAPI } from '@/services/api';
+import { cognitiveAPI } from '@/services/api';
 
 export default function Results() {
   const router = useRouter();
@@ -33,8 +33,8 @@ export default function Results() {
         setLoading(false);
         return;
       }
-      const response = await resultsAPI.getCognitiveProfile(user.id);
-      setProfile(response.data);
+      const response = await cognitiveAPI.getProfile(user.id);
+      setProfile(response.data.profile);
     } catch (error) {
       console.error('Error loading profile:', error);
       // Profile not found is OK - user just needs to complete more activities
@@ -45,11 +45,11 @@ export default function Results() {
 
   // Prepare data for radar chart
   const chartData = profile ? [
-    { subject: 'Logical', A: profile.logicalThinking, fullMark: 100 },
-    { subject: 'Visual', A: profile.visualLearning, fullMark: 100 },
-    { subject: 'Memory', A: profile.memory, fullMark: 100 },
-    { subject: 'Reading', A: profile.readingSkill, fullMark: 100 },
-    { subject: 'Problem Solving', A: profile.problemSolving, fullMark: 100 },
+    { subject: 'Visual Memory', A: profile.visualMemory, fullMark: 100 },
+    { subject: 'Logical Reasoning', A: profile.logicalReasoning, fullMark: 100 },
+    { subject: 'Attention', A: profile.attentionFocus, fullMark: 100 },
+    { subject: 'Processing Speed', A: profile.processingSpeed, fullMark: 100 },
+    { subject: 'Reading', A: profile.readingComprehension, fullMark: 100 },
   ] : [];
 
   if (loading) {
@@ -152,11 +152,11 @@ export default function Results() {
 
               <div className="space-y-4">
                 {[
-                  { name: 'Logical Thinking', score: profile.logicalThinking, emoji: '🔬' },
-                  { name: 'Visual Learning', score: profile.visualLearning, emoji: '👁️' },
-                  { name: 'Memory Power', score: profile.memory, emoji: '💾' },
-                  { name: 'Reading Skill', score: profile.readingSkill, emoji: '📚' },
-                  { name: 'Problem Solving', score: profile.problemSolving, emoji: '🧩' },
+                  { name: 'Visual Memory', score: profile.visualMemory, emoji: '🧠' },
+                  { name: 'Logical Reasoning', score: profile.logicalReasoning, emoji: '🔬' },
+                  { name: 'Attention Focus', score: profile.attentionFocus, emoji: '🎯' },
+                  { name: 'Processing Speed', score: profile.processingSpeed, emoji: '⚡' },
+                  { name: 'Reading Comprehension', score: profile.readingComprehension, emoji: '📚' },
                 ].map((trait, idx) => (
                   <div key={trait.name}>
                     <div className="flex justify-between mb-2">

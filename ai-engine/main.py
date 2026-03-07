@@ -12,6 +12,77 @@ cognitive_model = CognitiveModel()
 analysis_engine = AnalysisEngine()
 
 
+def calculate_attention_focus(results: List[Dict]) -> float:
+    """
+    Calculate attention focus based on consistency and completion time.
+    """
+    if not results:
+        return 50.0
+    
+    # Measure consistency across attempts
+    scores = [r.get('accuracy', 50) for r in results]
+    if len(scores) > 1:
+        variance = sum((s - sum(scores)/len(scores))**2 for s in scores) / len(scores)
+        consistency_score = max(0, 100 - variance)
+    else:
+        consistency_score = scores[0] if scores else 50
+    
+    return round(min(100, max(0, consistency_score)), 2)
+
+
+def calculate_processing_speed(results: List[Dict]) -> float:
+    """
+    Calculate processing speed based on response times.
+    """
+    if not results:
+        return 50.0
+    
+    # Average time taken (normalized)
+    times = [r.get('timeTaken', 50) for r in results]
+    avg_time = sum(times) / len(times)
+    
+    # Faster = higher score (normalized around 30-60 seconds average)
+    speed_score = max(0, min(100, 100 - (avg_time - 30) * 2))
+    
+    return round(speed_score, 2)
+
+
+def extract_strengths(traits: Dict[str, float]) -> List[str]:
+    """
+    Extract cognitive strengths from trait scores.
+    """
+    strengths = []
+    
+    if traits.get('memory', 50) > 70:
+        strengths.append('Strong visual memory')
+    if traits.get('logicalThinking', 50) > 70:
+        strengths.append('Excellent logical reasoning')
+    if traits.get('readingSkill', 50) > 70:
+        strengths.append('Advanced reading comprehension')
+    if traits.get('problemSolving', 50) > 70:
+        strengths.append('Fast information processing')
+    
+    return strengths if strengths else ['Balanced cognitive abilities']
+
+
+def extract_weaknesses(traits: Dict[str, float]) -> List[str]:
+    """
+    Extract areas for improvement from trait scores.
+    """
+    weaknesses = []
+    
+    if traits.get('memory', 50) < 50:
+        weaknesses.append('Visual memory development needed')
+    if traits.get('logicalThinking', 50) < 50:
+        weaknesses.append('Logical reasoning practice recommended')
+    if traits.get('readingSkill', 50) < 50:
+        weaknesses.append('Reading comprehension support')
+    if traits.get('problemSolving', 50) < 50:
+        weaknesses.append('Processing speed exercises')
+    
+    return weaknesses
+
+
 class QuizResult(BaseModel):
     quizType: str
     score: float
@@ -48,6 +119,7 @@ async def root():
 async def analyze_cognitive_data(request: AnalysisRequest):
     """
     Analyze quiz results and generate cognitive profile.
+    Returns enhanced Cognitive DNA profile with brain map data.
     """
     try:
         # Convert results to dictionary format
@@ -66,9 +138,18 @@ async def analyze_cognitive_data(request: AnalysisRequest):
         trend_analysis = analysis_engine.analyze_performance_trend(results_dict)
         behavioral_patterns = analysis_engine.detect_behavioral_patterns(results_dict)
         
+        # Map to enhanced Cognitive DNA profile format
         response = {
-            **traits,
-            "learningStyle": learning_style,
+            "memory": traits.get('memory', 50),
+            "logicalThinking": traits.get('logicalThinking', 50),
+            "visualLearning": traits.get('visualLearning', 50),
+            "readingSkill": traits.get('readingSkill', 50),
+            "problemSolving": traits.get('problemSolving', 50),
+            "attentionFocus": calculate_attention_focus(results_dict),
+            "processingSpeed": calculate_processing_speed(results_dict),
+            "learningStyle": learning_style.lower().replace('+', '-'),
+            "strengths": extract_strengths(traits),
+            "weaknesses": extract_weaknesses(traits),
             "recommendations": recommendations,
             "analysis": {
                 "trend": trend_analysis['trend'],
