@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import QuizResult from '../models/QuizResult';
 import axios from 'axios';
+import { adaptiveEngine } from '../services/adaptiveDifficulty';
 
 // Submit quiz result
 export const submitQuiz = async (req: Request, res: Response): Promise<void> => {
@@ -13,9 +14,9 @@ export const submitQuiz = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const { quizType, score, timeTaken, accuracy, answers } = req.body;
+    const { quizType, score, timeTaken, accuracy, answers, difficultyLevel, adaptiveScore } = req.body;
 
-    // Create quiz result
+    // Create quiz result with adaptive difficulty tracking
     const result = new QuizResult({
       userId,
       quizType,
@@ -23,6 +24,8 @@ export const submitQuiz = async (req: Request, res: Response): Promise<void> => 
       timeTaken,
       accuracy,
       answers,
+      difficultyLevel: difficultyLevel || 'medium',
+      adaptiveScore: adaptiveScore || score,
     });
 
     await result.save();
@@ -41,6 +44,8 @@ export const submitQuiz = async (req: Request, res: Response): Promise<void> => 
             score: r.score,
             timeTaken: r.timeTaken,
             accuracy: r.accuracy,
+            difficultyLevel: r.difficultyLevel,
+            adaptiveScore: r.adaptiveScore,
           })),
         });
       } catch (aiError) {
@@ -56,6 +61,8 @@ export const submitQuiz = async (req: Request, res: Response): Promise<void> => 
         quizType: result.quizType,
         score: result.score,
         accuracy: result.accuracy,
+        difficultyLevel: result.difficultyLevel,
+        adaptiveScore: result.adaptiveScore,
         date: result.date,
       },
     });

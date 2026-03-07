@@ -7,6 +7,8 @@ export interface IQuizResult extends Document {
   timeTaken: number;
   accuracy: number;
   answers?: any[];
+  difficultyLevel?: string;
+  adaptiveScore?: number;
   date: Date;
 }
 
@@ -38,6 +40,16 @@ const QuizResultSchema: Schema = new Schema({
   answers: {
     type: Array,
     default: [],
+  },
+  difficultyLevel: {
+    type: String,
+    enum: ['easy', 'medium', 'hard'],
+    default: 'medium',
+  },
+  adaptiveScore: {
+    type: Number,
+    min: 0,
+    max: 100,
   },
   date: {
     type: Date,

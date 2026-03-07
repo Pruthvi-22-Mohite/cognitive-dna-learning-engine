@@ -4,6 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { quizAPI } from '@/services/api';
+import { useAdaptiveQuiz } from '@/hooks/useAdaptiveQuiz';
 
 interface Question {
   id: number;
@@ -11,6 +12,7 @@ interface Question {
   content: any;
   correctAnswer: any;
   options?: string[];
+  difficulty?: 'easy' | 'medium' | 'hard';
 }
 
 export default function Quiz() {
@@ -36,6 +38,10 @@ export default function Quiz() {
   const [clickCaptured, setClickCaptured] = useState(false);
   const stimulusTimerRef = useRef<NodeJS.Timeout | null>(null);
   const reactionStartTimeRef = useRef<number>(0);
+  const questionStartTimeRef = useRef<number>(0);
+
+  // Adaptive difficulty hook
+  const adaptiveQuiz = useAdaptiveQuiz(type as string);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -59,6 +65,13 @@ export default function Quiz() {
 
     return () => clearInterval(timer);
   }, [type]);
+
+  // Start timing when question changes
+  useEffect(() => {
+    if (questions.length > 0 && currentQuestion >= 0) {
+      questionStartTimeRef.current = Date.now();
+    }
+  }, [currentQuestion, questions]);
 
   const generateQuestions = (quizType: string) => {
     switch (quizType) {
@@ -127,54 +140,120 @@ export default function Quiz() {
     }, 3000);
   };
 
-  // 2. PATTERN RECOGNITION TEST - Progressive Difficulty
+  // 2. PATTERN RECOGNITION TEST - Progressive Difficulty with Adaptive Support
   const generatePatternRecognitionTest = () => {
     const patterns: Question[] = [
+      // EASY questions
       {
         id: 0,
         type: 'pattern',
-        content: '2, 4, 8, 16, ?',
-        options: ['24', '32', '48', '64'],
-        correctAnswer: 1, // 32 (doubling pattern)
+        content: '2, 4, 6, 8, ?',
+        options: ['9', '10', '11', '12'],
+        correctAnswer: 1, // 10 (+2 pattern)
+        difficulty: 'easy',
       },
       {
         id: 1,
         type: 'pattern',
-        content: '△ ○ □ △ ○ ?',
-        options: ['△', '□', '○', '☆'],
-        correctAnswer: 1, // □ (repeating sequence)
+        content: '△ ○ △ ○ △ ?',
+        options: ['△', '○', '□', '☆'],
+        correctAnswer: 1, // ○ (simple alternating)
+        difficulty: 'easy',
       },
       {
         id: 2,
         type: 'pattern',
-        content: '5, 10, 15, 20, 25, ?',
-        options: ['28', '30', '35', '40'],
-        correctAnswer: 1, // 30 (+5 pattern)
+        content: '5, 10, 15, 20, ?',
+        options: ['22', '25', '30', '35'],
+        correctAnswer: 1, // 25 (+5 pattern)
+        difficulty: 'easy',
       },
+      // MEDIUM questions
       {
         id: 3,
         type: 'pattern',
-        content: '1, 1, 2, 3, 5, 8, ?',
-        options: ['11', '13', '15', '17'],
-        correctAnswer: 1, // 13 (Fibonacci sequence)
+        content: '2, 4, 8, 16, ?',
+        options: ['24', '32', '48', '64'],
+        correctAnswer: 1, // 32 (×2 pattern)
+        difficulty: 'medium',
       },
       {
         id: 4,
         type: 'pattern',
+        content: '△ ○ □ △ ○ □ △ ?',
+        options: ['△', '○', '□', '☆'],
+        correctAnswer: 1, // ○ (3-item cycle)
+        difficulty: 'medium',
+      },
+      {
+        id: 5,
+        type: 'pattern',
+        content: '1, 1, 2, 3, 5, 8, ?',
+        options: ['11', '13', '15', '17'],
+        correctAnswer: 1, // 13 (Fibonacci)
+        difficulty: 'medium',
+      },
+      // HARD questions
+      {
+        id: 6,
+        type: 'pattern',
         content: '3, 6, 12, 24, 48, ?',
         options: ['72', '84', '96', '108'],
         correctAnswer: 2, // 96 (×2 pattern)
+        difficulty: 'hard',
+      },
+      {
+        id: 7,
+        type: 'pattern',
+        content: '1, 4, 9, 16, 25, ?',
+        options: ['30', '32', '36', '40'],
+        correctAnswer: 2, // 36 (perfect squares)
+        difficulty: 'hard',
+      },
+      {
+        id: 8,
+        type: 'pattern',
+        content: '2, 3, 5, 7, 11, 13, ?',
+        options: ['15', '16', '17', '19'],
+        correctAnswer: 2, // 17 (prime numbers)
+        difficulty: 'hard',
       },
     ];
     
     setQuestions(patterns);
   };
 
-  // 3. LOGIC PUZZLE TEST - Age-Appropriate Reasoning
+  // 3. LOGIC PUZZLE TEST - Age-Appropriate Reasoning with Adaptive Support
   const generateLogicPuzzleTest = () => {
     const logicQuestions: Question[] = [
+      // EASY questions
       {
         id: 0,
+        type: 'logic',
+        content: 'All dogs are animals. Max is a dog. What is Max?',
+        options: ['A cat', 'An animal', 'A bird', 'A fish'],
+        correctAnswer: 1,
+        difficulty: 'easy',
+      },
+      {
+        id: 1,
+        type: 'logic',
+        content: 'If today is Monday, what day will it be in 7 days?',
+        options: ['Sunday', 'Monday', 'Tuesday', 'Wednesday'],
+        correctAnswer: 1,
+        difficulty: 'easy',
+      },
+      {
+        id: 2,
+        type: 'logic',
+        content: 'Sarah is taller than Tom. Tom is taller than Ben. Who is tallest?',
+        options: ['Sarah', 'Tom', 'Ben', 'Cannot tell'],
+        correctAnswer: 0,
+        difficulty: 'easy',
+      },
+      // MEDIUM questions
+      {
+        id: 3,
         type: 'logic',
         content: 'If all cats are animals and some animals are black, which statement MUST be true?',
         options: [
@@ -184,16 +263,32 @@ export default function Quiz() {
           'All animals are cats'
         ],
         correctAnswer: 1,
+        difficulty: 'medium',
       },
       {
-        id: 1,
+        id: 4,
         type: 'logic',
         content: 'Tom is taller than Jerry. Jerry is taller than Spike. Who is the shortest?',
         options: ['Tom', 'Jerry', 'Spike', 'They are all the same height'],
         correctAnswer: 2,
+        difficulty: 'medium',
       },
       {
-        id: 2,
+        id: 5,
+        type: 'logic',
+        content: 'Every student in Class 5 has a backpack. Sarah is in Class 5. What do we know?',
+        options: [
+          'Sarah has a backpack',
+          'Sarah does not have a backpack',
+          'Sarah might have a backpack',
+          'Sarah is not a student'
+        ],
+        correctAnswer: 0,
+        difficulty: 'medium',
+      },
+      // HARD questions
+      {
+        id: 6,
         type: 'logic',
         content: 'If it rains, the ground gets wet. The ground is NOT wet. What can we conclude?',
         options: [
@@ -203,21 +298,10 @@ export default function Quiz() {
           'The ground is dry'
         ],
         correctAnswer: 1,
+        difficulty: 'hard',
       },
       {
-        id: 3,
-        type: 'logic',
-        content: 'Every student in Class 5 has a backpack. Sarah is in Class 5. What do we know about Sarah?',
-        options: [
-          'Sarah has a backpack',
-          'Sarah does not have a backpack',
-          'Sarah might have a backpack',
-          'Sarah is not a student'
-        ],
-        correctAnswer: 0,
-      },
-      {
-        id: 4,
+        id: 7,
         type: 'logic',
         content: 'A square has 4 equal sides. A rectangle has opposite sides equal. Which statement is correct?',
         options: [
@@ -227,6 +311,20 @@ export default function Quiz() {
           'Squares have more sides than rectangles'
         ],
         correctAnswer: 1,
+        difficulty: 'hard',
+      },
+      {
+        id: 8,
+        type: 'logic',
+        content: 'Some teachers are strict. No strict person is kind. What follows?',
+        options: [
+          'Some teachers are not kind',
+          'All teachers are kind',
+          'No teachers are kind',
+          'Some kind people are teachers'
+        ],
+        correctAnswer: 0,
+        difficulty: 'hard',
       },
     ];
     
@@ -374,11 +472,27 @@ export default function Quiz() {
   };
 
   const handleAnswer = (answerIndex: number) => {
-    const newAnswers = [...answers, { question: currentQuestion, answer: answerIndex }];
+    const currentQ = questions[currentQuestion];
+    const isCorrect = answerIndex === currentQ.correctAnswer;
+    
+    // Record response time and process adaptive difficulty
+    questionStartTimeRef.current = questionStartTimeRef.current || Date.now();
+    const { nextDifficulty } = adaptiveQuiz.processAnswer(currentQ, answerIndex, isCorrect);
+    
+    const newAnswers = [...answers, { 
+      question: currentQuestion, 
+      answer: answerIndex,
+      isCorrect,
+      difficulty: currentQ.difficulty,
+    }];
     setAnswers(newAnswers);
 
-    if (currentQuestion < questions.length - 1) {
-      setTimeout(() => setCurrentQuestion(currentQuestion + 1), 300);
+    // Get next question based on adaptive difficulty
+    const nextQuestion = adaptiveQuiz.getNextQuestion(questions);
+    
+    if (nextQuestion) {
+      setCurrentQuestion(questions.findIndex(q => q.id === nextQuestion.id));
+      questionStartTimeRef.current = Date.now(); // Reset timer for next question
     } else {
       setTimeout(() => handleSubmit(newAnswers), 300);
     }
@@ -386,6 +500,7 @@ export default function Quiz() {
 
   const handleSubmit = async (finalAnswers = answers) => {
     let calculatedScore = 0;
+    let adaptiveScoreValue = 0;
     
     if (type === 'speed') {
       // For reaction speed, calculate based on average reaction time
@@ -398,6 +513,7 @@ export default function Quiz() {
         // Score: 200ms = 100%, 500ms = 70%, 1000ms = 40%
         calculatedScore = Math.max(0, Math.min(100, Math.round(120 - (avgReactionTime / 10))));
         setReactionTime(Math.round(avgReactionTime));
+        adaptiveScoreValue = calculatedScore; // Speed test doesn't use difficulty adjustment
       }
     } else {
       // Traditional scoring for other tests
@@ -410,10 +526,14 @@ export default function Quiz() {
         }
       });
       calculatedScore = Math.round((correctCount / questions.length) * 100);
+      
+      // Calculate adaptive score considering difficulty
+      adaptiveScoreValue = adaptiveQuiz.calculateAdaptiveScore(questions.length, correctCount);
     }
 
     const timeTaken = 300 - timeLeft;
     const accuracy = calculatedScore;
+    const finalDifficulty = adaptiveQuiz.getFinalDifficulty();
 
     setScore(calculatedScore);
     setCompleted(true);
@@ -426,6 +546,8 @@ export default function Quiz() {
         timeTaken,
         accuracy,
         answers: finalAnswers,
+        difficultyLevel: finalDifficulty,
+        adaptiveScore: adaptiveScoreValue,
       });
     } catch (error) {
       console.error('Error submitting result:', error);
@@ -738,6 +860,26 @@ export default function Quiz() {
             animate={{ opacity: 1, x: 0 }}
             className="card"
           >
+            {/* Difficulty Badge */}
+            <div className="mb-4 flex items-center gap-2">
+              <span className="text-sm text-gray-600">Difficulty:</span>
+              {questions[currentQuestion]?.difficulty === 'easy' && (
+                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold border-2 border-green-300">
+                  🌱 Easy
+                </span>
+              )}
+              {questions[currentQuestion]?.difficulty === 'medium' && (
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-semibold border-2 border-yellow-300">
+                  ⚡ Medium
+                </span>
+              )}
+              {questions[currentQuestion]?.difficulty === 'hard' && (
+                <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold border-2 border-red-300">
+                  🔥 Hard
+                </span>
+              )}
+            </div>
+
             {/* Reading passage display */}
             {type === 'reading' && (
               <div className="mb-6 p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
