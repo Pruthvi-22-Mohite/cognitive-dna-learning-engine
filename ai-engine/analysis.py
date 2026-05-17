@@ -7,7 +7,7 @@ import google.generativeai as genai
 
 # Initialize Gemini API
 try:
-    API_KEY = os.environ.get("GEMINI_API_KEY", "")
+    API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyDDhEe0yJu936UDR97Qvhpo_duEOdXtjNg")
     genai.configure(api_key=API_KEY)
     gemini_model = genai.GenerativeModel('gemini-1.5-flash')
     print("✅ Gemini AI Model Initialized successfully")
