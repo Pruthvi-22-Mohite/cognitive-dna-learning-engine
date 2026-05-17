@@ -42,7 +42,7 @@ export default function Login() {
         <title>Login - Cognitive DNA</title>
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-cyan-400 via-violet-500 to-fuchsia-500 flex items-center justify-center px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -1,5 +1,24 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
+export interface IRecommendedVideo {
+  title: string;
+  url: string;
+  rationale: string;
+}
+
+export interface IReportGuideline {
+  category: string;
+  instruction: string;
+}
+
+export interface IRemedialPathItem {
+  trait: string;
+  score: number;
+  videoUrl: string;
+  videoTitle: string;
+  improvementTip: string;
+}
+
 export interface ICognitiveProfile extends Document {
   userId: mongoose.Types.ObjectId;
   visualMemory: number;
@@ -11,6 +30,12 @@ export interface ICognitiveProfile extends Document {
   strengths: string[];
   weaknesses: string[];
   recommendations: string[];
+  recommendedVideos: IRecommendedVideo[];
+  reportGuidelines: IReportGuideline[];
+  detailedAnalysisReport: string;
+  diagnosticSummary: string;
+  remedialPath: IRemedialPathItem[];
+  overallGrade: string;
   createdAt: Date;
 }
 
@@ -67,6 +92,43 @@ const CognitiveProfileSchema: Schema = new Schema({
   recommendations: {
     type: [String],
     default: [],
+  },
+  recommendedVideos: {
+    type: [{
+      title: { type: String, required: true },
+      url: { type: String, required: true },
+      rationale: { type: String, required: true },
+    }],
+    default: [],
+  },
+  reportGuidelines: {
+    type: [{
+      category: { type: String, required: true },
+      instruction: { type: String, required: true },
+    }],
+    default: [],
+  },
+  detailedAnalysisReport: {
+    type: String,
+    default: '',
+  },
+  diagnosticSummary: {
+    type: String,
+    default: '',
+  },
+  remedialPath: {
+    type: [{
+      trait: { type: String, required: true },
+      score: { type: Number, required: true },
+      videoUrl: { type: String, required: true },
+      videoTitle: { type: String, required: true },
+      improvementTip: { type: String, required: true },
+    }],
+    default: [],
+  },
+  overallGrade: {
+    type: String,
+    default: 'Developing Learner',
   },
   createdAt: {
     type: Date,

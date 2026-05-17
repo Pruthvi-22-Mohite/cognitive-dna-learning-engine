@@ -7,6 +7,9 @@ interface AdaptiveState {
   streak: number;
   averageResponseTime: number;
   questionsAnswered: number;
+  needsReframing: boolean;
+  reframeCount: number;
+  consecutiveStruggles: number;
   performanceHistory: Array<{
     questionId: number;
     isCorrect: boolean;
@@ -30,6 +33,9 @@ export const useAdaptiveQuiz = (quizType: string) => {
     streak: 0,
     averageResponseTime: 0,
     questionsAnswered: 0,
+    needsReframing: false,
+    reframeCount: 0,
+    consecutiveStruggles: 0,
     performanceHistory: [],
   });
 
@@ -46,6 +52,8 @@ export const useAdaptiveQuiz = (quizType: string) => {
     },
     STREAK_TO_INCREASE: 3,   // 3 correct in a row to increase
     STREAK_TO_DECREASE: -2,  // 2 wrong in a row to decrease
+    SLOW_RESPONSE: 12000,     // > 12s considered struggling
+    CONSECUTIVE_STRUGGLES_FOR_REFRAME: 2, // 2 consecutive struggles trigger reframing
   };
 
   /**
@@ -61,13 +69,14 @@ export const useAdaptiveQuiz = (quizType: string) => {
   const processAnswer = (
     question: Question,
     selectedAnswer: any,
-    isCorrect: boolean
+    isCorrect: boolean,
+    responseTime: number
   ): { 
     nextDifficulty: DifficultyLevel;
     responseTime: number;
     updatedState: AdaptiveState;
+    updatedAnsweredQuestions: number[];
   } => {
-    const responseTime = Date.now() - questionStartTimeRef.current;
     
     // Update performance history
     const newPerformance = {
@@ -81,6 +90,18 @@ export const useAdaptiveQuiz = (quizType: string) => {
     const newStreak = isCorrect 
       ? adaptiveState.streak + 1 
       : adaptiveState.streak - 1;
+
+    // --- Struggle detection for question reframing ---
+    const isSlow = responseTime > THRESHOLDS.SLOW_RESPONSE;
+    const isStruggling = !isCorrect || isSlow;
+    const newConsecutiveStruggles = isStruggling
+      ? adaptiveState.consecutiveStruggles + 1
+      : 0; // Reset on correct & fast answer
+
+    const shouldReframe = newConsecutiveStruggles >= THRESHOLDS.CONSECUTIVE_STRUGGLES_FOR_REFRAME;
+    const newReframeCount = shouldReframe
+      ? adaptiveState.reframeCount + 1
+      : adaptiveState.reframeCount;
 
     // Calculate new average response time
     const newAverageResponseTime = 
@@ -112,25 +133,30 @@ export const useAdaptiveQuiz = (quizType: string) => {
       streak: adjustedStreak,
       averageResponseTime: newAverageResponseTime,
       questionsAnswered: adaptiveState.questionsAnswered + 1,
+      needsReframing: shouldReframe,
+      reframeCount: newReframeCount,
+      consecutiveStruggles: newConsecutiveStruggles,
       performanceHistory: [...adaptiveState.performanceHistory, newPerformance],
     };
 
+    const updatedAnsweredQuestions = [...answeredQuestions, question.id];
     setAdaptiveState(newState);
-    setAnsweredQuestions([...answeredQuestions, question.id]);
+    setAnsweredQuestions(updatedAnsweredQuestions);
 
     return {
       nextDifficulty,
       responseTime,
       updatedState: newState,
+      updatedAnsweredQuestions,
     };
   };
 
   /**
    * Get next question based on current difficulty
    */
-  const getNextQuestion = (allQuestions: Question[]): Question | null => {
+  const getNextQuestion = (allQuestions: Question[], currentAnswered: number[] = answeredQuestions): Question | null => {
     const remainingQuestions = allQuestions.filter(
-      q => !answeredQuestions.includes(q.id) && q.difficulty === adaptiveState.currentDifficulty
+      q => !currentAnswered.includes(q.id) && q.difficulty === adaptiveState.currentDifficulty
     );
 
     if (remainingQuestions.length > 0) {
@@ -149,7 +175,7 @@ export const useAdaptiveQuiz = (quizType: string) => {
     const fallbackDifficulty = difficulties[fallbackIndex];
 
     const fallbackQuestions = allQuestions.filter(
-      q => !answeredQuestions.includes(q.id) && q.difficulty === fallbackDifficulty
+      q => !currentAnswered.includes(q.id) && q.difficulty === fallbackDifficulty
     );
 
     if (fallbackQuestions.length > 0) {
@@ -158,7 +184,7 @@ export const useAdaptiveQuiz = (quizType: string) => {
     }
 
     // Last resort: any remaining question
-    const anyRemaining = allQuestions.filter(q => !answeredQuestions.includes(q.id));
+    const anyRemaining = allQuestions.filter(q => !currentAnswered.includes(q.id));
     if (anyRemaining.length > 0) {
       const randomIndex = Math.floor(Math.random() * anyRemaining.length);
       return anyRemaining[randomIndex];
@@ -223,6 +249,7 @@ export const useAdaptiveQuiz = (quizType: string) => {
       averageResponseTime: Math.round(adaptiveState.averageResponseTime),
       totalQuestions: adaptiveState.questionsAnswered,
       finalStreak: adaptiveState.streak,
+      reframesUsed: adaptiveState.reframeCount,
       performanceHistory: adaptiveState.performanceHistory,
     };
   };
@@ -236,6 +263,9 @@ export const useAdaptiveQuiz = (quizType: string) => {
       streak: 0,
       averageResponseTime: 0,
       questionsAnswered: 0,
+      needsReframing: false,
+      reframeCount: 0,
+      consecutiveStruggles: 0,
       performanceHistory: [],
     });
     setAnsweredQuestions([]);

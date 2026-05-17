@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -17,6 +19,7 @@
 }
 
 body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
       to bottom,
@@ -26,23 +29,209 @@ body {
     rgb(var(--background-start-rgb));
 }
 
-/* Kid-friendly custom styles */
+/* ════════════════════════════════════════════════════════════════════════
+   Premium EdTech Design System
+   Tactile buttons, glassmorphic cards, soft shadows, Inter font
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── High-Contrast Primary Button (Deep Indigo) ── */
 .btn-primary {
-  @apply bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg;
+  @apply bg-indigo-600 text-white font-bold py-3 px-6 rounded-2xl
+         transition-all duration-200
+         hover:bg-indigo-700
+         active:translate-y-0.5;
+  box-shadow: 0 4px 0 #312e81, 0 6px 20px rgba(67, 56, 202, 0.5);
+}
+.btn-primary:hover {
+  box-shadow: 0 2px 0 #312e81, 0 4px 15px rgba(67, 56, 202, 0.6);
+  transform: translateY(2px);
+}
+.btn-primary:active {
+  box-shadow: 0 0 0 #312e81, 0 2px 8px rgba(67, 56, 202, 0.4);
+  transform: translateY(4px);
 }
 
+/* ── High-Contrast Secondary Button (Vivid Rose/Coral) ── */
 .btn-secondary {
-  @apply bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg;
+  @apply bg-rose-500 text-white font-bold py-3 px-6 rounded-2xl
+         transition-all duration-200
+         hover:bg-rose-600
+         active:translate-y-0.5;
+  box-shadow: 0 4px 0 #9f1239, 0 6px 20px rgba(244, 63, 94, 0.5);
+}
+.btn-secondary:hover {
+  box-shadow: 0 2px 0 #9f1239, 0 4px 15px rgba(244, 63, 94, 0.6);
+  transform: translateY(2px);
+}
+.btn-secondary:active {
+  box-shadow: 0 0 0 #9f1239, 0 2px 8px rgba(244, 63, 94, 0.4);
+  transform: translateY(4px);
 }
 
+/* ── High-Contrast Action Button (White on Dark — Maximum Visibility) ── */
+.btn-action {
+  @apply bg-white text-indigo-900 font-extrabold py-3 px-6 rounded-2xl
+         transition-all duration-200
+         hover:bg-gray-100
+         active:translate-y-0.5;
+  box-shadow: 0 4px 0 #c7d2fe, 0 6px 20px rgba(255, 255, 255, 0.3);
+}
+.btn-action:hover {
+  box-shadow: 0 2px 0 #c7d2fe, 0 4px 15px rgba(255, 255, 255, 0.4);
+  transform: translateY(2px);
+}
+.btn-action:active {
+  box-shadow: 0 0 0 #c7d2fe, 0 2px 8px rgba(255, 255, 255, 0.25);
+  transform: translateY(4px);
+}
+
+/* ── Glassmorphic Card ── */
 .card {
-  @apply bg-white rounded-2xl shadow-xl p-6 border-2 border-gray-100;
+  @apply bg-white/80 backdrop-blur-md rounded-3xl shadow-xl p-6 border border-white/60;
 }
 
+/* ── Input Field ── */
 .input-field {
-  @apply w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-400;
+  @apply w-full px-4 py-3 border-2 border-gray-200 rounded-2xl
+         focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100
+         transition-all text-gray-900 placeholder-gray-400 bg-white/90;
 }
 
+/* ── Gradient Background Utility ── */
 .gradient-bg {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* ── Premium Page Background ── */
+.premium-bg {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8eaff 25%, #f5f0ff 50%, #fef6ff 75%, #fff 100%);
+}
+
+/* ── Quiz Option Button ── */
+.quiz-option {
+  @apply bg-white/90 backdrop-blur-sm border-2 border-gray-200 text-gray-800
+         font-semibold py-5 px-5 rounded-2xl transition-all duration-200
+         hover:border-indigo-400 hover:bg-indigo-50/80 hover:shadow-lg
+         active:translate-y-0.5 active:shadow-sm cursor-pointer text-left;
+  box-shadow: 0 3px 0 #e5e7eb, 0 4px 12px rgba(0,0,0,0.06);
+}
+.quiz-option:hover {
+  box-shadow: 0 3px 0 #a5b4fc, 0 6px 20px rgba(99, 102, 241, 0.15);
+}
+.quiz-option:active {
+  box-shadow: 0 1px 0 #e5e7eb, 0 2px 4px rgba(0,0,0,0.04);
+}
+
+/* ── Reframe Hint Tooltip ── */
+.reframe-banner {
+  background: linear-gradient(135deg, #fefce8 0%, #fff7ed 50%, #fef3c7 100%);
+  border: 2px solid #fbbf24;
+  box-shadow: 0 4px 20px rgba(251, 191, 36, 0.2);
+}
+
+/* ── Activity Card ── */
+.activity-card {
+  @apply bg-white/90 backdrop-blur-sm rounded-3xl border border-white/60 p-6
+         cursor-pointer transition-all duration-300;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.04), 0 8px 30px rgba(0,0,0,0.06);
+}
+.activity-card:hover {
+  box-shadow: 0 8px 0 rgba(0,0,0,0.03), 0 16px 40px rgba(0,0,0,0.1);
+  transform: translateY(-6px);
+}
+.activity-card:active {
+  box-shadow: 0 2px 0 rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06);
+  transform: translateY(0px);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Print styles for the Diagnostic Certificate
+   ════════════════════════════════════════════════════════════════════════ */
+@media print {
+  .no-print,
+  button,
+  a[class*="btn"],
+  nav,
+  footer {
+    display: none !important;
+  }
+
+  .print-only-header {
+    display: block !important;
+  }
+
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif !important;
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
+  }
+
+  body,
+  .results-page,
+  div {
+    background: white !important;
+    color: #1a1a1a !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .recharts-wrapper,
+  .recharts-surface,
+  svg {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .card,
+  [class*="bg-slate"] {
+    background: white !important;
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    page-break-inside: avoid;
+    margin-bottom: 12px !important;
+    padding: 16px !important;
+  }
+
+  [class*="text-white"],
+  [class*="text-slate"],
+  [class*="text-indigo"],
+  [class*="text-emerald"],
+  [class*="text-amber"],
+  [class*="text-rose"],
+  [class*="text-red"],
+  [class*="text-violet"],
+  h1, h2, h3, h4, p, span, li {
+    color: #1a1a1a !important;
+  }
+
+  [class*="bg-gradient"] {
+    background: #4f46e5 !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #remedial-plan .space-y-6 > div {
+    page-break-inside: avoid;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    background: #fafafa !important;
+  }
+
+  #guidelines-section .space-y-3 > div {
+    page-break-inside: avoid;
+  }
+
+  @page {
+    size: A4;
+    margin: 18mm 14mm;
+  }
+
+  a[href^="https"]::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #6b7280;
+    word-break: break-all;
+  }
 }

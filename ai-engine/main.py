@@ -119,8 +119,11 @@ async def root():
 async def analyze_cognitive_data(request: AnalysisRequest):
     """
     Analyze quiz results and generate cognitive profile.
-    Returns enhanced Cognitive DNA profile with brain map data.
+    Returns enhanced Cognitive DNA profile with brain map data,
+    YouTube video recommendations, parent/teacher guidelines,
+    and a detailed narrative analysis report.
     """
+    print(f"🚀 Received profile request for data: {request.json()}")
     try:
         # Convert results to dictionary format
         results_dict = [result.dict() for result in request.results]
@@ -138,6 +141,33 @@ async def analyze_cognitive_data(request: AnalysisRequest):
         trend_analysis = analysis_engine.analyze_performance_trend(results_dict)
         behavioral_patterns = analysis_engine.detect_behavioral_patterns(results_dict)
         
+        # --- NEW: Generate video recommendations ---
+        recommended_videos = analysis_engine.generate_video_recommendations(traits, learning_style)
+        
+        # --- NEW: Generate parent/teacher guidelines ---
+        report_guidelines = analysis_engine.generate_report_guidelines(traits, learning_style)
+        
+        # Build partial profile data dict for the narrative generator
+        profile_for_report = {
+            'memory': traits.get('memory', 50),
+            'logicalThinking': traits.get('logicalThinking', 50),
+            'visualLearning': traits.get('visualLearning', 50),
+            'readingSkill': traits.get('readingSkill', 50),
+            'problemSolving': traits.get('problemSolving', 50),
+            'attentionFocus': calculate_attention_focus(results_dict),
+            'processingSpeed': calculate_processing_speed(results_dict),
+            'learningStyle': learning_style,
+            'strengths': extract_strengths(traits),
+            'weaknesses': extract_weaknesses(traits),
+            'recommendations': recommendations,
+        }
+        
+        # --- NEW: Generate narrative analysis report ---
+        detailed_analysis_report = analysis_engine.generate_analysis_text(profile_for_report)
+        
+        # --- NEW: Generate prescriptive diagnostic report ---
+        prescriptive = analysis_engine.generate_prescriptive_report(traits, learning_style, recommendations)
+        
         # Map to enhanced Cognitive DNA profile format
         response = {
             "memory": traits.get('memory', 50),
@@ -151,6 +181,12 @@ async def analyze_cognitive_data(request: AnalysisRequest):
             "strengths": extract_strengths(traits),
             "weaknesses": extract_weaknesses(traits),
             "recommendations": recommendations,
+            "recommendedVideos": recommended_videos,
+            "reportGuidelines": report_guidelines,
+            "detailedAnalysisReport": detailed_analysis_report,
+            "diagnosticSummary": prescriptive['diagnosticSummary'],
+            "remedialPath": prescriptive['remedialPath'],
+            "overallGrade": prescriptive['overallGrade'],
             "analysis": {
                 "trend": trend_analysis['trend'],
                 "improvement_rate": trend_analysis['improvement_rate'],
@@ -162,7 +198,8 @@ async def analyze_cognitive_data(request: AnalysisRequest):
         return response
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"❌ Analysis failed: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/recommendations")
@@ -214,7 +251,7 @@ async def get_detailed_insights(request: AnalysisRequest):
 @app.get("/health")
 async def health_check():
     """Health check endpoint for monitoring."""
-    return {"status": "healthy", "service": "ai-engine"}
+    return {"status": "ok", "message": "Brain is online"}
 
 
 @app.post("/health")

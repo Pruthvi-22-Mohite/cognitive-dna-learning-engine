@@ -1,5 +1,6 @@
 import numpy as np
 from typing import List, Dict
+import random
 
 class CognitiveModel:
     """
@@ -190,7 +191,9 @@ class CognitiveModel:
         # Add recommendations for weak areas
         for area in weakest_areas:
             if area in recommendation_templates:
-                recommendations.extend(recommendation_templates[area][:2])
+                recs = recommendation_templates[area].copy()
+                random.shuffle(recs)
+                recommendations.extend(recs[:2])
         
         # Add learning style specific recommendations
         style_recommendations = {
@@ -214,9 +217,13 @@ class CognitiveModel:
         
         for style in learning_style.split('+'):
             if style in style_recommendations:
-                recommendations.append(style_recommendations[style][0])
+                recs = style_recommendations[style].copy()
+                random.shuffle(recs)
+                recommendations.append(recs[0])
         
         # Remove duplicates and limit to 5 recommendations
-        unique_recommendations = list(dict.fromkeys(recommendations))[:5]
+        unique_recommendations = list(dict.fromkeys(recommendations))
+        random.shuffle(unique_recommendations)
+        unique_recommendations = unique_recommendations[:5]
         
         return unique_recommendations

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import QuizResult from '../models/QuizResult';
-import axios from 'axios';
+import CognitiveProfile from '../models/CognitiveProfile';
+import aiService from '../services/aiService';
 import { adaptiveEngine } from '../services/adaptiveDifficulty';
 
 // Submit quiz result
@@ -30,27 +31,53 @@ export const submitQuiz = async (req: Request, res: Response): Promise<void> => 
 
     await result.save();
 
-    // Send to AI engine for analysis if this completes a set of tests
-    const recentResults = await QuizResult.find({ userId }).sort({ date: -1 }).limit(5);
+    // Check if this user has completed 3+ unique quiz types and doesn't already have a profile
+    const completedTypes = await QuizResult.find({ userId }).distinct('quizType');
+    const userHasProfile = await CognitiveProfile.exists({ userId });
     
-    if (recentResults.length >= 3) {
-      // Forward to AI service for cognitive profile generation
+    if (completedTypes.length >= 3 && !userHasProfile) {
       try {
-        const aiServiceUrl = process.env.AI_ENGINE_URL || 'http://localhost:8000';
-        await axios.post(`${aiServiceUrl}/analyze`, {
-          userId,
+        const recentResults = await QuizResult.find({ userId }).sort({ date: -1 }).limit(5);
+        const aiData = await aiService.analyzeCognitiveData({
+          userId: userId.toString(),
           results: recentResults.map(r => ({
             quizType: r.quizType,
             score: r.score,
             timeTaken: r.timeTaken,
             accuracy: r.accuracy,
-            difficultyLevel: r.difficultyLevel,
-            adaptiveScore: r.adaptiveScore,
-          })),
+            difficultyLevel: r.difficultyLevel || 'medium',
+          })) as any
         });
+
+        console.log('🤖 AI response received for quiz submission');
+        
+        // Persist full cognitive profile including prescriptive fields
+        await CognitiveProfile.findOneAndUpdate(
+          { userId },
+          {
+            userId,
+            visualMemory: aiData.memory || aiData.visualMemory || 50,
+            logicalReasoning: aiData.logicalThinking || aiData.logicalReasoning || 50,
+            attentionFocus: aiData.attentionFocus || 50,
+            processingSpeed: aiData.processingSpeed || 50,
+            readingComprehension: aiData.readingSkill || aiData.readingComprehension || 50,
+            learningStyle: aiData.learningStyle || 'visual',
+            strengths: aiData.strengths || [],
+            weaknesses: aiData.weaknesses || [],
+            recommendations: aiData.recommendations || [],
+            recommendedVideos: aiData.recommendedVideos || [],
+            reportGuidelines: aiData.reportGuidelines || [],
+            detailedAnalysisReport: aiData.detailedAnalysisReport || '',
+            diagnosticSummary: aiData.diagnosticSummary || '',
+            remedialPath: aiData.remedialPath || [],
+            overallGrade: aiData.overallGrade || 'Developing Learner',
+            createdAt: new Date(),
+          },
+          { upsert: true, new: true }
+        );
+        console.log('✅ Cognitive profile generated via quiz submission');
       } catch (aiError) {
-        console.error('AI service error:', aiError);
-        // Don't fail the request if AI service is unavailable
+        console.error('AI service error (non-fatal):', aiError);
       }
     }
 

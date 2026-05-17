@@ -61,7 +61,7 @@ export default function Register() {
         <title>Sign Up - Cognitive DNA</title>
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-400 to-purple-400 flex items-center justify-center px-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-cyan-400 via-violet-500 to-fuchsia-500 flex items-center justify-center px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -1,5 +1,59 @@
 import { Request, Response } from 'express';
 
+// Kid-friendly reframe contexts for question rewriting
+const REFRAME_CONTEXTS: Record<string, string[]> = {
+  pattern: [
+    'Batman sees the Bat-Signal flash in a pattern:',
+    'Spider-Man swings between buildings following a pattern:',
+    'Pikachu zaps targets in a sequence:',
+    'Mario collects coins in this order:',
+    'Dora follows a map with a number trail:',
+  ],
+  logic: [
+    'In a superhero team meeting:',
+    'At Hogwarts School of Magic:',
+    'In the Minecraft world:',
+    'On a Pokémon adventure:',
+    'At the space station:',
+  ],
+  reading: [
+    'Read this story about a brave astronaut:',
+    'Read this adventure about a treasure-hunting pirate:',
+    'Read this tale about a young wizard:',
+    'Read this story about a friendly dinosaur:',
+    'Read this adventure about a robot explorer:',
+  ],
+};
+
+/**
+ * Reframe a question by wrapping its content in a fun, kid-friendly context
+ * without changing the actual difficulty or the correct answer.
+ */
+const reframeQuestion = (
+  questionContent: string,
+  quizType: string,
+  questionIndex: number
+): string => {
+  const contexts = REFRAME_CONTEXTS[quizType];
+  if (!contexts || contexts.length === 0) return questionContent;
+
+  const ctx = contexts[questionIndex % contexts.length];
+
+  // For pattern questions, prepend a fun context line
+  if (quizType === 'pattern') {
+    return `${ctx} ${questionContent}`;
+  }
+  // For logic questions, wrap with character context
+  if (quizType === 'logic') {
+    return `${ctx} ${questionContent}`;
+  }
+  // For reading, we keep passage but add a fun intro
+  if (quizType === 'reading') {
+    return questionContent; // Passage reframing handled separately
+  }
+  return questionContent;
+};
+
 // Enhanced cognitive test questions with scientific validity
 export const getActivities = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -64,9 +118,12 @@ export const getActivities = async (req: Request, res: Response): Promise<void> 
 };
 
 // Generate specific cognitive test questions
+// Supports optional `struggling` query param for question reframing
 export const generateQuestions = async (req: Request, res: Response): Promise<void> => {
   try {
     const { quizType } = req.params;
+    const struggling = req.query.struggling === 'true';
+    const questionIndex = parseInt(req.query.questionIndex as string, 10) || 0;
     
     // In production, this would fetch from a database or AI-generated questions
     // For now, return metadata about the test structure
@@ -115,7 +172,50 @@ export const generateQuestions = async (req: Request, res: Response): Promise<vo
       },
     };
 
-    res.json(testStructures[quizType] || { error: 'Invalid quiz type' });
+    const structure = testStructures[quizType];
+    if (!structure) {
+      res.json({ error: 'Invalid quiz type' });
+      return;
+    }
+
+    // If the student is struggling, attach reframed text metadata
+    if (struggling && ['pattern', 'logic', 'reading'].includes(quizType)) {
+      // Example reframed question hints per quiz type
+      const reframedHints: Record<string, string[]> = {
+        pattern: [
+          'Batman sees the Bat-Signal flash in a pattern: Look at how each number changes to find the next one!',
+          'Spider-Man swings between buildings following a pattern: What is being added each time?',
+          'Pikachu zaps targets in a sequence: Try multiplying instead of adding!',
+          'Mario collects coins in this order: Each number is special – they are all squares!',
+          'Dora follows a map with a number trail: These are numbers that can only be divided by 1 and themselves!',
+        ],
+        logic: [
+          'In a superhero team meeting: If Batman is a hero, and all heroes are brave, what do we know about Batman?',
+          'At Hogwarts School of Magic: If Monday comes every 7 days, when does the next Monday arrive?',
+          'In the Minecraft world: Steve is taller than Alex, and Alex is taller than a Creeper. Who is tallest?',
+          'On a Pokémon adventure: All fire types are Pokémon. If Charmander is a fire type, is Charmander a Pokémon?',
+          'At the space station: If no oxygen means no breathing, and we ARE breathing, what do we know?',
+        ],
+        reading: [
+          'Read this story about a brave astronaut: Focus on what each CHARACTER does in the story.',
+          'Read this adventure about a treasure-hunting pirate: Look for NUMBERS and FACTS in the passage.',
+          'Read this tale about a young wizard: What is the MAIN IDEA of the passage?',
+        ],
+      };
+
+      const hints = reframedHints[quizType] || [];
+      const reframedText = hints[questionIndex % hints.length] || '';
+
+      res.json({
+        ...structure,
+        reframed: true,
+        reframedText,
+        reframedNotification: "🌟 Let's look at this a different way!",
+      });
+      return;
+    }
+
+    res.json(structure);
   } catch (error) {
     console.error('Generate questions error:', error);
     res.status(500).json({ message: 'Server error generating questions' });

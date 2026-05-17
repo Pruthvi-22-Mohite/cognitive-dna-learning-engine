@@ -9,6 +9,7 @@ export interface IQuizResult extends Document {
   answers?: any[];
   difficultyLevel?: string;
   adaptiveScore?: number;
+  reframesUsed: number;
   date: Date;
 }
 
@@ -50,6 +51,10 @@ const QuizResultSchema: Schema = new Schema({
     type: Number,
     min: 0,
     max: 100,
+  },
+  reframesUsed: {
+    type: Number,
+    default: 0,
   },
   date: {
     type: Date,
