@@ -271,14 +271,33 @@ export default function StudentDashboard() {
             transition={{ delay: 0.5 }}
             className="mt-8 card bg-white text-slate-800 max-w-5xl mx-auto shadow-md border border-slate-100"
           >
-            <h3 className="text-xl text-slate-900 font-extrabold mb-5 text-center">
+            <h3 className="text-xl text-slate-900 font-extrabold mb-6 text-center">
               Your Progress 📊
             </h3>
+            
+            {/* Quiz Activity Metrics */}
+            <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
+              <p className="text-sm font-bold text-blue-600 mb-4 text-center uppercase tracking-wide">Quiz Activity Tracking</p>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="text-center p-4 bg-white rounded-xl border border-blue-100">
+                  <p className="text-blue-600 text-xs font-bold mb-2">TOTAL QUIZ SUBMISSIONS</p>
+                  <p className="text-4xl font-extrabold text-blue-700">{dashboardData ? dashboardData.totalSubmissions : 0}</p>
+                  <p className="text-xs text-blue-500 mt-2">All quiz attempts combined</p>
+                </div>
+                <div className="text-center p-4 bg-white rounded-xl border border-indigo-100">
+                  <p className="text-indigo-600 text-xs font-bold mb-2">UNIQUE ACTIVITIES COMPLETED</p>
+                  <p className="text-4xl font-extrabold text-indigo-700">{dashboardData ? dashboardData.uniqueActivities : 0}/5</p>
+                  <p className="text-xs text-indigo-500 mt-2">Different activity types (Report unlocks at 3+)</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Performance Stats */}
             <div className="grid md:grid-cols-3 gap-4">
               {[
-                { icon: '🎯', label: 'Activities Completed', value: dashboardData ? dashboardData.activitiesCompleted : 0, bg: 'bg-indigo-50 border-indigo-100', text: 'text-indigo-700', labelText: 'text-indigo-600' },
                 { icon: '⭐', label: 'Average Score', value: dashboardData ? `${dashboardData.averageScore}%` : '--%', bg: 'bg-emerald-50 border-emerald-100', text: 'text-emerald-700', labelText: 'text-emerald-600' },
                 { icon: '🏆', label: 'Brain Badges', value: dashboardData && dashboardData.brainBadges ? dashboardData.brainBadges.length : 0, bg: 'bg-amber-50 border-amber-100', text: 'text-amber-700', labelText: 'text-amber-600' },
+                { icon: '🧠', label: 'Report Status', value: dashboardData && dashboardData.uniqueActivities >= 3 ? '🔓 Unlocked' : '🔒 Locked', bg: 'bg-rose-50 border-rose-100', text: dashboardData && dashboardData.uniqueActivities >= 3 ? 'text-emerald-700' : 'text-rose-700', labelText: 'text-rose-600' },
               ].map((stat) => (
                 <div key={stat.label} className={`text-center p-5 ${stat.bg} rounded-2xl border`}>
                   <div className="text-3xl mb-2">{stat.icon}</div>

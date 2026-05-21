@@ -133,16 +133,27 @@ async def analyze_cognitive_data(request: AnalysisRequest):
         
         # Detect learning style
         learning_style = cognitive_model.detect_learning_style(traits, results_dict)
+
+        # Extract weaknesses once so the same inputs drive remediation everywhere
+        weaknesses = extract_weaknesses(traits)
         
         # Generate recommendations
         recommendations = cognitive_model.generate_recommendations(traits, learning_style)
+
+        # Generate Gemini-backed remedial guidance using weaknesses + learning style
+        remedial_plan = analysis_engine.generate_remedial_plan(weaknesses, learning_style)
         
         # Perform additional analysis
         trend_analysis = analysis_engine.analyze_performance_trend(results_dict)
         behavioral_patterns = analysis_engine.detect_behavioral_patterns(results_dict)
         
         # --- NEW: Generate video recommendations ---
-        recommended_videos = analysis_engine.generate_video_recommendations(traits, learning_style)
+        recommended_videos = analysis_engine.generate_video_recommendations(
+            traits,
+            learning_style,
+            weaknesses,
+            remedial_plan,
+        )
         
         # --- NEW: Generate parent/teacher guidelines ---
         report_guidelines = analysis_engine.generate_report_guidelines(traits, learning_style)
@@ -158,7 +169,7 @@ async def analyze_cognitive_data(request: AnalysisRequest):
             'processingSpeed': calculate_processing_speed(results_dict),
             'learningStyle': learning_style,
             'strengths': extract_strengths(traits),
-            'weaknesses': extract_weaknesses(traits),
+            'weaknesses': weaknesses,
             'recommendations': recommendations,
         }
         
@@ -166,7 +177,13 @@ async def analyze_cognitive_data(request: AnalysisRequest):
         detailed_analysis_report = analysis_engine.generate_analysis_text(profile_for_report)
         
         # --- NEW: Generate prescriptive diagnostic report ---
-        prescriptive = analysis_engine.generate_prescriptive_report(traits, learning_style, recommendations)
+        prescriptive = analysis_engine.generate_prescriptive_report(
+            traits,
+            learning_style,
+            recommendations,
+            weaknesses,
+            remedial_plan,
+        )
         
         # Map to enhanced Cognitive DNA profile format
         response = {
@@ -179,7 +196,7 @@ async def analyze_cognitive_data(request: AnalysisRequest):
             "processingSpeed": calculate_processing_speed(results_dict),
             "learningStyle": learning_style.lower().replace('+', '-'),
             "strengths": extract_strengths(traits),
-            "weaknesses": extract_weaknesses(traits),
+            "weaknesses": weaknesses,
             "recommendations": recommendations,
             "recommendedVideos": recommended_videos,
             "reportGuidelines": report_guidelines,

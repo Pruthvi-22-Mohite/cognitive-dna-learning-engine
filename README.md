@@ -1,128 +1,69 @@
-# 🧠 Cognitive DNA Mapping Engine
+# Cognitive DNA Mapping Engine
 
-A diagnostic platform that analyses how children (ages 8–12) think and learn through interactive games, then generates a **Prescriptive Diagnostic Report** with personalised improvement plans.
+A full-stack, AI-powered diagnostic platform designed to analyze how children (ages 8-12) think and learn. By guiding users through gamified cognitive assessments, the engine evaluates real-time telemetry to generate a highly personalized Prescriptive Diagnostic Report, complete with multidimensional scoring, learning style detection, and dynamic remedial action plans powered by Google Gemini.
 
-## 🚀 Tech Stack
+## Architecture & Tech Stack
 
-| Layer | Tech |
-|-------|------|
-| **Frontend** | Next.js, TypeScript, TailwindCSS, Framer Motion, Recharts, html2canvas, jsPDF |
-| **Backend** | Node.js, Express, TypeScript, MongoDB, JWT |
-| **AI Engine** | Python, FastAPI, Google Gemini API (Generative AI), Scikit-learn, NumPy |
-| **DevOps** | Docker & Docker Compose |
+This project follows a strictly typed, 3-tier microservices architecture, fully containerized for seamless development and deployment.
 
-## 📁 Project Structure
+### 1. Frontend (User Interface)
+- Framework: Next.js (React), TypeScript, TailwindCSS
+- Data Visualization: Recharts (Radar charts, Donut Gauges)
+- State & Fetching: Zustand, Axios
 
-```
-├── backend/                  # Node.js Express API
-│   ├── controllers/          # Auth, quiz, cognitive analysis, question generator
-│   ├── models/               # User, QuizResult, CognitiveProfile schemas
-│   ├── routes/               # API route definitions
-│   ├── services/             # AI Engine client
-│   └── server.ts
-├── frontend/                 # Next.js React App
-│   ├── hooks/                # useAdaptiveQuiz (difficulty + reframing)
-│   ├── pages/                # Landing, login, register, dashboard, quiz, results
-│   ├── services/             # Axios API client
-│   └── styles/               # Global CSS + print styles
-├── ai-engine/                # Python FastAPI
-│   ├── main.py               # /analyze endpoint
-│   ├── cognitive_model.py    # Trait scoring + learning style detection
-│   └── analysis.py           # Statistical + prescriptive report generation
-└── docker-compose.yml
-```
+### 2. Backend (API & Telemetry Routing)
+- Server: Node.js, Express.js, TypeScript
+- Database: MongoDB (via Mongoose)
+- Security: JWT, bcrypt
 
-## ✨ Key Features
+### 3. AI Engine (Machine Learning & GenAI)
+- Framework: Python, FastAPI
+- Data Science: Scikit-learn, NumPy (Cognitive Trait Scoring)
+- Generative AI: Google Gemini API (Dynamic Remedial Plans)
+- Role: Ingests raw telemetry, calculates cognitive trait scores, detects dominant learning styles, and prompts Gemini to generate highly randomized, personalized YouTube learning queries based on the child's cognitive footprint.
 
-### Cognitive Assessment
-- **5 Activity Types**: Memory, Pattern Recognition, Logic, Reading Comprehension, Speed
-- **Adaptive Difficulty**: Auto-adjusts easy → medium → hard based on real-time performance
-- **Question Reframing**: Struggling students get the same question wrapped in fun contexts (Batman, Pikachu, etc.) — difficulty stays the same
+### 4. Infrastructure
+- Containerization: Docker, Docker Compose
 
-### Diagnostic Report (Results Page)
-- **Overall Grade**: Advanced Explorer → Needs Guided Support (5 tiers)
-- **Performance Gauge**: Half-donut composite score chart
-- **Radar Chart**: Spider chart across 5 cognitive dimensions
-- **Diagnostic Summary**: True Generative AI (Gemini) written "Doctor's Note" style assessment overview.
-- **Remedial Action Plan**: Per-weakness cards with YouTube video + daily improvement tip.
-- **Parent/Teacher Guidelines**: Actionable numbered instructions.
-- **Print/PDF Export**: Flawless, dynamic multi-page A4 PDF generation using `html2canvas` and `jsPDF`. Scales perfectly to fit extensive AI-generated content.
+## Key Features
 
-### AI Analysis Pipeline
-```
-Quiz Results → Trait Scoring → Learning Style Detection
-                              → Weakness Detection (< 50)
-                              → Video Mapping + Daily Tips
-                              → Grade Assignment
-                              → Gemini API Prompting → Unique Natural Language Diagnostics
-```
+- 5-Dimension Cognitive Assessment: Tests Memory, Pattern Recognition, Logic, Reading Comprehension, and Processing Speed.
+- Real-Time Adaptive Difficulty: Dynamically scales question difficulty based on millisecond-accurate response times and accuracy.
+- Contextual Question Reframing: Automatically reframes failed questions using relatable themes to bypass learning anxiety.
+- AI-Powered Action Plan: Utilizes the Gemini API to generate a highly specific, non-repetitive Remedial Action Plan, matching distinct YouTube educational videos to the child's specific weaknesses and learning style.
+- Print-Ready Export: The dashboard utilizes tailored CSS `@media print` rules to instantly export as a clean, professional A4 PDF.
 
-## 🛠️ Quick Setup
+## Getting Started
 
 ### Prerequisites
-- Node.js 18+, Python 3.11+, MongoDB
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- A Google Gemini API Key
 
-### Run All 3 Services
+### Installation (Docker Method)
+
+1. Clone the repository:
 
 ```bash
-# Terminal 1 — Backend
-cd backend && npm install && npm run dev          # → localhost:5000
-
-# Terminal 2 — AI Engine
-cd ai-engine && python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000             # → localhost:8000
-
-# Terminal 3 — Frontend
-cd frontend && npm install && npm run dev          # → localhost:3000
+git clone https://github.com/yourusername/cognitive-dna-engine.git
+cd cognitive-dna-engine
 ```
 
-### Environment Variables
+2. Environment setup:
 
-**`backend/.env`**
+Create a `.env` file in the root directory and add your Gemini API key:
+
 ```env
-MONGODB_URI=mongodb://localhost:27017/cognitive-dna
-JWT_SECRET=your-secret-key
-PORT=5000
-AI_ENGINE_URL=http://localhost:8000
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-**`ai-engine/.env`** (Required for Generative AI Features)
-```env
-GEMINI_API_KEY=your-google-gemini-api-key
-```
+3. Build and launch:
 
-**`frontend/.env`**
-```env
-NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
-```
-
-### Or Use Docker
 ```bash
 docker-compose up --build
 ```
 
-## 📡 API Overview
+Access the application:
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| `POST` | `/api/auth/register` | Register user |
-| `POST` | `/api/auth/login` | Login |
-| `POST` | `/api/cognitive/submit-results` | Submit quiz → AI analysis → profile |
-| `GET`  | `/api/cognitive/profile/:userId` | Get full diagnostic profile |
-| `GET`  | `/api/quiz/activities` | List available games |
-| `GET`  | `/api/quiz/questions/:type?struggling=true` | Get questions (with reframing) |
-| `POST` | `/analyze` *(AI Engine)* | Full cognitive analysis |
-
-## 🎮 User Flow
-
-1. **Register** → Parent creates account with child info
-2. **Play Games** → Complete 3–5 cognitive activities
-3. **AI Analyses** → Scores traits, detects learning style, identifies weaknesses
-4. **View Report** → Diagnostic Certificate with grade, charts, prescriptions
-5. **Download** → Print as professional A4 PDF
-
----
-
-**Version**: 2.0.0 · **Last Updated**: May 2026
+- Frontend (Next.js): `http://localhost:3000`
+- Backend API (Node.js): `http://localhost:5000`
+- AI Engine (FastAPI): `http://localhost:8000/docs`

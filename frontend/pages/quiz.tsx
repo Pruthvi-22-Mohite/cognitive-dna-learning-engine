@@ -31,6 +31,7 @@ export default function Quiz() {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [phase, setPhase] = useState<'memorize' | 'recall' | 'question'>('question');
   const [reframedHint, setReframedHint] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Reaction speed test state
   const [waitingForStimulus, setWaitingForStimulus] = useState(true);
@@ -43,6 +44,7 @@ export default function Quiz() {
   const questionStartTimeRef = useRef<number>(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isTransitioningRef = useRef(false);
+  const isSubmittingRef = useRef(false);
 
   // Adaptive difficulty hook
   const adaptiveQuiz = useAdaptiveQuiz(type as string);
@@ -430,6 +432,7 @@ export default function Quiz() {
   };
 
   const handleReactionClick = () => {
+    if (isSubmittingRef.current || isSubmitting) return;
     if (stimulusVisible && !clickCaptured) {
       const reactionTime = Date.now() - reactionStartTimeRef.current;
       setReactionTime(reactionTime);
@@ -477,6 +480,7 @@ export default function Quiz() {
   };
 
   const submitMemoryAnswer = () => {
+    if (isSubmittingRef.current || isSubmitting) return;
     const selectedObjects = selectedItems.map(i => gridItems[i]);
     const newAnswers = [...answers, { 
       question: currentQuestion, 
@@ -503,7 +507,7 @@ export default function Quiz() {
   };
 
   const handleAnswer = (answerIndex: number) => {
-    if (isTransitioningRef.current) return;
+    if (isTransitioningRef.current || isSubmittingRef.current || isSubmitting) return;
     isTransitioningRef.current = true;
 
     const currentQ = questions[currentQuestion];
@@ -565,6 +569,10 @@ export default function Quiz() {
   };
 
   const handleSubmit = async (finalAnswers = answers) => {
+    if (isSubmittingRef.current || isSubmitting) return;
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+
     // CRITICAL: Stop the main timer immediately on quiz end
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
@@ -642,6 +650,9 @@ export default function Quiz() {
       console.log('✅ Test submitted to both APIs');
     } catch (error) {
       console.error('Error submitting result:', error);
+      setIsSubmitting(false);
+      isSubmittingRef.current = false;
+      isTransitioningRef.current = false;
     }
   };
 

@@ -78,17 +78,12 @@ class CognitiveModel:
         
         for result in results:
             quiz_type = result['quizType']
-            score = result['score']
-            accuracy = result['accuracy']
-            time_taken = result['timeTaken']
-            
-            # Calculate performance score (weighted combination)
-            performance_score = (score * 0.6) + (accuracy * 0.3)
-            
-            # Time bonus (faster completion with good accuracy)
-            if accuracy > 70:
-                time_bonus = min(10, (100 - time_taken) / 10)
-                performance_score += time_bonus
+            score = float(result.get('score', 0))
+            accuracy = float(result.get('accuracy', score))
+
+            # Normalize scoring so correct runs remain near 100 and wrong runs
+            # reduce the trait cleanly instead of being skewed by bonus math.
+            performance_score = float(np.clip(accuracy, 0, 100))
             
             # Apply weights for this quiz type
             if quiz_type in self.trait_weights:

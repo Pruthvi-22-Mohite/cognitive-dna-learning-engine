@@ -86,8 +86,9 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
     // Get cognitive profile if exists
     const cognitiveProfile = await CognitiveProfile.findOne({ userId: studentId });
 
-    // Calculate statistics
-    const activitiesCompleted = testResults.length;
+    // Get unique activities completed (count distinct activity types, not total submissions)
+    const completedActivities = [...new Set(testResults.map(r => r.quizType))];
+    const activitiesCompleted = completedActivities.length;
     
     let averageScore = 0;
     if (cognitiveProfile) {
@@ -107,9 +108,6 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
         : 0;
     }
 
-    // Get unique activities completed
-    const completedActivities = [...new Set(testResults.map(r => r.quizType))];
-
     // Calculate brain badges (unlock based on performance)
     const brainBadges = calculateBrainBadges(testResults);
 
@@ -125,6 +123,8 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
     res.status(200).json({
       success: true,
       data: {
+        totalSubmissions: testResults.length,
+        uniqueActivities: activitiesCompleted,
         activitiesCompleted,
         averageScore,
         completedActivities,
